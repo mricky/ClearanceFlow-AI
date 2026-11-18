@@ -19,6 +19,10 @@ import {
   Layers,
   X,
   Eye,
+  DollarSign,
+  Clock,
+  TrendingUp,
+  AlertCircle,
 } from "lucide-react";
 import { ToolExecutionTrace } from "../lib/types";
 import { PdfViewerModal } from "./PdfViewerModal";
@@ -521,6 +525,71 @@ export function AuditInspector({
                   <Eye className="h-3.5 w-3.5" />
                   <span>{isDownloadingPdf ? "Memuat PDF..." : "Lihat & Unduh PDF"}</span>
                 </button>
+              </div>
+            </div>
+
+            {/* Financial Liability & Cost Recovery Guardrail (Owner ROI Showcase) */}
+            <div className="p-3.5 rounded-lg bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-500/30 shadow-xs space-y-2.5">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-900 dark:text-white">
+                  <DollarSign className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  <span>Kalkulasi Liabilitas Finansial & Pemulihan Kas (ROI Guardrail)</span>
+                </div>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-400 dark:border-emerald-800">
+                  Potensi Sanggahan: 94% Valid
+                </span>
+              </div>
+
+              {/* 3 Metric Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {/* 1: Current Overdue Accrual */}
+                <div className="p-2.5 rounded-lg bg-red-50/70 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40">
+                  <span className="text-[10px] font-mono font-medium text-red-700 dark:text-red-400 block">
+                    Denda Berjalan Saat Ini
+                  </span>
+                  <p className="text-base font-mono font-bold text-red-700 dark:text-red-400 mt-0.5">
+                    $600.00
+                  </p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                    4 hari x $150/hari (Tier-1)
+                  </p>
+                </div>
+
+                {/* 2: Tier Escalation Countdown Timer */}
+                <div className="p-2.5 rounded-lg bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40">
+                  <span className="text-[10px] font-mono font-medium text-amber-800 dark:text-amber-400 flex items-center space-x-1">
+                    <Clock className="h-3 w-3 text-amber-600" />
+                    <span>Kenaikan Tarif Tier-2</span>
+                  </span>
+                  <p className="text-base font-mono font-bold text-amber-800 dark:text-amber-300 mt-0.5">
+                    14 Jam Tersisa
+                  </p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                    Lonjakan denda: +$250/hari
+                  </p>
+                </div>
+
+                {/* 3: Value Preserved / Recoverable */}
+                <div className="p-2.5 rounded-lg bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40">
+                  <span className="text-[10px] font-mono font-medium text-emerald-800 dark:text-emerald-400 flex items-center space-x-1">
+                    <TrendingUp className="h-3 w-3 text-emerald-600" />
+                    <span>Nilai Kas Dilindungi</span>
+                  </span>
+                  <p className="text-base font-mono font-bold text-emerald-700 dark:text-emerald-400 mt-0.5">
+                    +$600.00
+                  </p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                    Dasar KUHD Pasal 517
+                  </p>
+                </div>
+              </div>
+
+              {/* Urgency Alert Note */}
+              <div className="flex items-center space-x-2 text-[11px] text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-950/60 p-2 rounded border border-slate-200 dark:border-slate-800">
+                <AlertCircle className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                <span>
+                  <strong>Rekomendasi Finansial:</strong> Ajukan draf surat sanggahan PDF ke billing ocean carrier sebelum pukul 17:00 WIB agar denda dibekukan secara sah.
+                </span>
               </div>
             </div>
 
