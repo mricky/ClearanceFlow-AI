@@ -387,7 +387,7 @@ export default function Home() {
           <div className="flex items-center space-x-2 text-center sm:text-left">
             <span className="h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0 hidden sm:inline-block"></span>
             <p className="text-[11px] leading-relaxed">
-              <strong>Penafian (Disclaimer):</strong> Purwarupa riset teknologi independen untuk menguji RAG & MCP pada kepabeanan logistik. Tidak terafiliasi dengan perusahaan logistik manapun.
+              <strong>Catatan Proyek:</strong> Eksplorasi portofolio teknologi (RAG & MCP) untuk otomasi kepabeanan logistik. Tidak terafiliasi dengan perusahaan atau instansi manapun.
             </p>
           </div>
           <button

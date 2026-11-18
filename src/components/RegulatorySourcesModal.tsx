@@ -39,14 +39,14 @@ export function RegulatorySourcesModal({ isOpen, onClose }: RegulatorySourcesMod
 
         {/* Content Body */}
         <div className="p-4 sm:p-5 overflow-y-auto space-y-4 text-xs">
-          {/* Official Disclaimer Box */}
+          {/* Modern Friendly Disclaimer Box */}
           <div className="p-3.5 rounded-xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-500/40 text-amber-950 dark:text-amber-200 space-y-1.5 leading-relaxed">
             <div className="flex items-center space-x-2 font-bold text-amber-900 dark:text-amber-300">
               <ShieldAlert className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-              <span>Pernyataan Penafian Independensi Riset (Disclaimer)</span>
+              <span>Tentang Proyek Ini (Disclaimer)</span>
             </div>
             <p className="text-[11px] leading-relaxed">
-              Aplikasi ini dikembangkan sebagai <strong>purwarupa riset teknologi independen</strong> untuk mendemonstrasikan implementasi <strong>Retrieval-Augmented Generation (RAG)</strong> berbasis PostgreSQL pgvector dan <strong>Model Context Protocol (MCP)</strong> pada sektor kepabeanan logistik maritim. Proyek ini <strong>tidak terafiliasi secara komersial dengan perusahaan freight forwarding, pelayaran, atau instansi kepabeanan manapun</strong>. Data kontainer adalah data simulasi studi kasus.
+              Aplikasi ini adalah <strong>proyek portofolio & eksplorasi teknis independen</strong> untuk menguji bagaimana teknologi AI modern (<strong>RAG & MCP</strong>) dapat membantu operasional logistik pelabuhan dan kepabeanan. Aplikasi ini <strong>tidak terafiliasi dengan perusahaan freight forwarding, pelayaran, atau instansi pemerintah manapun</strong>. Seluruh nomor kontainer adalah simulasi studi kasus, sedangkan pasal dan SOP pabean bersumber dari regulasi resmi.
             </p>
           </div>
 
