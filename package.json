@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "mcp:server": "tsx src/mcp/server.ts"
+    "mcp:server": "tsx src/mcp/server.ts",
+    "db:seed": "tsx scripts/seed-supabase.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

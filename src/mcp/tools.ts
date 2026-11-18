@@ -1,5 +1,5 @@
+import { createClient } from "@supabase/supabase-js";
 import { SAMPLE_SHIPMENTS, KNOWLEDGE_DOCUMENTS } from "../lib/mockData";
-import { ShipmentRecord } from "../lib/types";
 
 export interface MCPToolDefinition {
   name: string;
@@ -83,10 +83,57 @@ export const CLEARANCEFLOW_MCP_TOOLS: MCPToolDefinition[] = [
   },
 ];
 
+function getSupabaseClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
+
 export async function executeMCPTool(toolName: string, args: Record<string, any>) {
+  const supabase = getSupabaseClient();
+
   switch (toolName) {
     case "lookup_shipment": {
       const cleaned = (args.identifier || "").trim().toUpperCase();
+
+      // 1. Try Live Supabase Query
+      if (supabase) {
+        try {
+          const { data, error } = await supabase
+            .from("shipments")
+            .select("*")
+            .or(`container_no.ilike.%${cleaned}%,waybill_no.ilike.%${cleaned}%,id.ilike.%${cleaned}%`)
+            .limit(1)
+            .maybeSingle();
+
+          if (data && !error) {
+            return {
+              found: true,
+              source: "supabase_live_partition_2026_q1",
+              id: data.id,
+              waybillNo: data.waybill_no,
+              containerNo: data.container_no,
+              status: data.status,
+              commodity: data.commodity,
+              carrier: data.carrier,
+              vessel: data.vessel,
+              pol: data.pol,
+              pod: data.pod,
+              freeTimeDaysLeft: data.free_time_days_left,
+              demurrageDaysOverdue: data.demurrage_days_overdue,
+              temperatureCelsius: data.temperature_celsius ? Number(data.temperature_celsius) : null,
+              hsCode: data.hs_code,
+              grossMassKg: data.gross_mass_kg,
+              timeline: data.timeline,
+            };
+          }
+        } catch (dbErr) {
+          console.warn("Supabase lookup error, falling back to local dataset:", dbErr);
+        }
+      }
+
+      // 2. Fallback to Local Dataset
       const found = SAMPLE_SHIPMENTS.find(
         (s) =>
           s.waybillNo.toUpperCase().includes(cleaned) ||
@@ -103,6 +150,7 @@ export async function executeMCPTool(toolName: string, args: Record<string, any>
 
       return {
         found: true,
+        source: "local_partition_fallback",
         id: found.id,
         waybillNo: found.waybillNo,
         containerNo: found.containerNo,
@@ -117,10 +165,40 @@ export async function executeMCPTool(toolName: string, args: Record<string, any>
         temperatureCelsius: found.temperatureCelsius,
         hsCode: found.hsCode,
         grossMassKg: found.grossMassKg,
+        timeline: found.timeline,
       };
     }
 
     case "search_compliance_knowledge": {
+      // 1. Try Live Supabase pgvector RPC
+      if (supabase && args.queryVector) {
+        try {
+          const { data, error } = await supabase.rpc("search_compliance_hybrid_rrf", {
+            query_text: args.query,
+            query_vector: args.queryVector,
+            match_count: 3,
+          });
+
+          if (data && data.length > 0 && !error) {
+            return {
+              query: args.query,
+              source: "supabase_pgvector_hnsw_hybrid",
+              retrievedCount: data.length,
+              documents: data.map((d: any) => ({
+                title: d.title,
+                category: d.category,
+                subCategory: d.sub_category,
+                contentSnippet: d.content,
+                rrfScore: d.rrf_score,
+              })),
+            };
+          }
+        } catch (ragErr) {
+          console.warn("Supabase RPC error, falling back:", ragErr);
+        }
+      }
+
+      // 2. Fallback
       const q = (args.query || "").toLowerCase();
       const tokens = q.replace(/[^\w\s]/g, " ").split(/\s+/).filter((t: string) => t.length > 2);
 
@@ -129,7 +207,6 @@ export async function executeMCPTool(toolName: string, args: Record<string, any>
         pool = pool.filter((d) => d.category === args.categoryFilter);
       }
 
-      // Hybrid rank simulation
       const scored = pool.map((doc) => {
         let matches = 0;
         const text = (doc.title + " " + doc.content).toLowerCase();
@@ -152,6 +229,7 @@ export async function executeMCPTool(toolName: string, args: Record<string, any>
 
       return {
         query: args.query,
+        source: "local_rrf_simulation",
         retrievedCount: top.length,
         documents: top.length > 0 ? top : pool.slice(0, 2).map((d) => ({
           title: d.title,

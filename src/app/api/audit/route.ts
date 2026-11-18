@@ -51,51 +51,35 @@ export async function POST(req: NextRequest) {
       latencyMs: t1Latency,
     });
 
-    // Step 2: Real Vector Embedding & Hybrid RAG Search
+    // Step 2: Real Vector Embedding & Live Supabase pgvector Hybrid RAG Search
     const t2Start = performance.now();
     let topArticles: any[] = [];
     let rrfScore = 0.0328;
+    let ragSource = "supabase_pgvector_hnsw_hybrid";
 
     try {
       const embedModel = genAI.getGenerativeModel({ model: "gemini-embedding-001" });
-      const queryEmbeddingRes = await embedModel.embedContent(query);
+      const queryEmbeddingRes = await embedModel.embedContent({
+        content: { role: "user", parts: [{ text: query }] },
+        outputDimensionality: 1536,
+      } as any);
       const queryVector = queryEmbeddingRes.embedding.values;
 
-      // Lexical tokens
-      const tokens = query.toLowerCase().replace(/[^\w\s]/g, " ").split(/\s+/).filter((t: string) => t.length > 2);
-
-      // Scored articles via RRF simulation
-      const scoredArticles = KNOWLEDGE_DOCUMENTS.map((doc, idx) => {
-        // Lexical
-        let lexMatch = 0;
-        const text = (doc.title + " " + doc.content).toLowerCase();
-        tokens.forEach((t: string) => {
-          if (text.includes(t)) lexMatch++;
-        });
-
-        // Synthetic semantic prior boosted if domain term matches
-        const hasDomainMatch = text.includes("spjm") || text.includes("demurrage") || text.includes("behandle") || text.includes("karantina");
-        const semScore = hasDomainMatch ? 0.85 : 0.45;
-
-        const rankLex = lexMatch > 0 ? 1 : 10;
-        const rankSem = idx + 1;
-        const rrf = (1.0 / (60 + rankLex)) + (1.0 / (60 + rankSem));
-
-        return {
-          title: doc.title,
-          category: doc.category,
-          subCategory: doc.subCategory,
-          content: doc.content,
-          rrfScore: Number(rrf.toFixed(5)),
-        };
+      const ragResult: any = await executeMCPTool("search_compliance_knowledge", {
+        query,
+        queryVector,
+        categoryFilter: "all",
       });
 
-      scoredArticles.sort((a, b) => b.rrfScore - a.rrfScore);
-      topArticles = scoredArticles.slice(0, 2);
-      rrfScore = topArticles[0]?.rrfScore || 0.0328;
+      if (ragResult.documents && ragResult.documents.length > 0) {
+        topArticles = ragResult.documents;
+        rrfScore = topArticles[0]?.rrfScore || 0.03279;
+        ragSource = ragResult.source || "supabase_pgvector_hnsw_hybrid";
+      }
     } catch (e: any) {
-      console.warn("Embedding error, fallback to lexical:", e.message);
+      console.warn("Embedding / Live RAG error, fallback:", e.message);
       topArticles = KNOWLEDGE_DOCUMENTS.slice(0, 2);
+      ragSource = "local_fallback";
     }
 
     const t2Latency = Number((performance.now() - t2Start).toFixed(2));
@@ -103,7 +87,8 @@ export async function POST(req: NextRequest) {
       toolName: "search_compliance_knowledge",
       arguments: { query, categoryFilter: "all" },
       result: {
-        method: "Gemini 3072d Dense Vector + PostgreSQL Lexical (RRF)",
+        method: "Gemini 1536d + Supabase pgvector HNSW + GIN (RRF)",
+        source: ragSource,
         kConstant: 60,
         retrievedCount: topArticles.length,
         topRankedArticle: topArticles[0]?.title || "Customs Compliance Article",
