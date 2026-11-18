@@ -5,6 +5,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)](https://nextjs.org)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15%2B%20%7C%20pgvector-336791?style=flat-square&logo=postgresql)](https://github.com/pgvector/pgvector)
 [![MCP](https://img.shields.io/badge/Architecture-Model%20Context%20Protocol-00C7B7?style=flat-square)](https://modelcontextprotocol.io)
+[![CI/CD Gatekeeper](https://github.com/mricky/ClearanceFlow-AI/actions/workflows/gatekeeper.yml/badge.svg)](https://github.com/mricky/ClearanceFlow-AI/actions/workflows/gatekeeper.yml)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
 ---
