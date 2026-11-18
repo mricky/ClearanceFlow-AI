@@ -325,26 +325,26 @@ export default function Home() {
 
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                Sedang Menjalankan Audit Kepabeanan...
+                Sedang Memeriksa Dokumen & Status Kargo...
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Sinkronisasi live dengan Gemini AI & Database Partisi Supabase
+                Memverifikasi data pelabuhan dan ketentuan resmi Bea Cukai CEISA
               </p>
             </div>
 
-            {/* Stepper Checklist */}
-            <div className="bg-slate-50 dark:bg-slate-950/70 rounded-xl p-3 border border-slate-200 dark:border-slate-800 text-left space-y-2 text-xs font-mono">
+            {/* Stepper Checklist - Bahasa Operasional Logistik */}
+            <div className="bg-slate-50 dark:bg-slate-950/70 rounded-xl p-3 border border-slate-200 dark:border-slate-800 text-left space-y-2 text-xs font-sans">
               <div className="flex items-center space-x-2 text-slate-700 dark:text-slate-300">
                 <Database className="h-3.5 w-3.5 text-blue-600 dark:text-cyan-400 shrink-0" />
-                <span className="truncate">1. Pengecekan manifest & status partisi Q1...</span>
+                <span className="truncate">1. Memeriksa nomor kontainer & manifest pelabuhan...</span>
               </div>
               <div className="flex items-center space-x-2 text-slate-700 dark:text-slate-300">
                 <Search className="h-3.5 w-3.5 text-indigo-600 dark:text-blue-400 shrink-0" />
-                <span className="truncate">2. Embedding query & RAG HNSW regulasi pabean...</span>
+                <span className="truncate">2. Mencocokkan syarat izin ekspor-impor & karantina...</span>
               </div>
               <div className="flex items-center space-x-2 text-slate-700 dark:text-slate-300">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span className="truncate">3. Sintesis arahan hukum & draf surat sanggahan...</span>
+                <span className="truncate">3. Menyiapkan instruksi kerja lapangan & surat resmi...</span>
               </div>
             </div>
 
@@ -353,8 +353,8 @@ export default function Home() {
               <div className="h-full bg-slate-900 dark:bg-cyan-500 rounded-full w-2/3 animate-pulse mx-auto"></div>
             </div>
 
-            <p className="text-[11px] text-slate-400 font-mono">
-              Mohon tunggu, proses inspeksi sedang berlangsung
+            <p className="text-[11px] text-slate-400 font-sans">
+              Mohon tunggu sebentar, proses pengecekan kargo sedang berjalan
             </p>
           </div>
         </div>

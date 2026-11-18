@@ -76,8 +76,8 @@ export function ContainerDetailModal({
                   {selectedShipment.id}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">
-                Data Partisi: <span className="text-slate-700 dark:text-cyan-400 font-semibold">shipments_2026_q1</span> (Supabase Cloud Live)
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-sans mt-0.5">
+                Data Pelabuhan: <span className="text-slate-800 dark:text-slate-200 font-medium">Terminal Peti Kemas Tanjung Priok (Manifest Aktif)</span>
               </p>
             </div>
           </div>
