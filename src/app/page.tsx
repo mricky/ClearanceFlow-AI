@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Loader2, Database, Search, ShieldCheck } from "lucide-react";
+import { Loader2, Database, Search, ShieldCheck, BookOpen } from "lucide-react";
 import { Header } from "../components/Header";
 import { ScenarioBar, DEMO_SCENARIOS, ScenarioItem } from "../components/ScenarioBar";
 import { AuditInspector } from "../components/AuditInspector";
 import { ArchitectureModal } from "../components/ArchitectureModal";
 import { ContainerDetailModal } from "../components/ContainerDetailModal";
+import { RegulatorySourcesModal } from "../components/RegulatorySourcesModal";
 import { SAMPLE_SHIPMENTS } from "../lib/mockData";
 import { ShipmentRecord, ToolExecutionTrace } from "../lib/types";
 import { lookupShipment, calculateDemurrageRisk, generateDisputeDraft } from "../lib/mcpTools";
@@ -25,6 +26,7 @@ export default function Home() {
   const [activeScenarioId, setActiveScenarioId] = useState<string>("sc-1");
   const [isArchModalOpen, setIsArchModalOpen] = useState(false);
   const [isContainerModalOpen, setIsContainerModalOpen] = useState(false);
+  const [isSourcesModalOpen, setIsSourcesModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentQuery, setCurrentQuery] = useState<string>(DEMO_SCENARIOS[0].query);
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -372,6 +374,32 @@ export default function Home() {
         isOpen={isArchModalOpen}
         onClose={() => setIsArchModalOpen(false)}
       />
+
+      {/* Regulatory Sources & Disclaimer Modal */}
+      <RegulatorySourcesModal
+        isOpen={isSourcesModalOpen}
+        onClose={() => setIsSourcesModalOpen(false)}
+      />
+
+      {/* Clean Footer Disclaimer & Regulatory Sources Bar */}
+      <footer className="border-t border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-950 py-3 px-4 sm:px-6 transition-colors">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-slate-500 dark:text-slate-400">
+          <div className="flex items-center space-x-2 text-center sm:text-left">
+            <span className="h-1.5 w-1.5 rounded-full bg-slate-400 shrink-0 hidden sm:inline-block"></span>
+            <p className="text-[11px] leading-relaxed">
+              <strong>Penafian (Disclaimer):</strong> Purwarupa riset teknologi independen untuk menguji RAG & MCP pada kepabeanan logistik. Tidak terafiliasi dengan perusahaan logistik manapun.
+            </p>
+          </div>
+          <button
+            onClick={() => setIsSourcesModalOpen(true)}
+            className="flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-sans text-[11px] font-medium border border-slate-200 dark:border-slate-800 transition shrink-0"
+            title="Lihat daftar dokumen hukum & SOP resmi yang diindeks"
+          >
+            <BookOpen className="h-3.5 w-3.5 text-blue-600 dark:text-cyan-400" />
+            <span>Sumber SOP & Regulasi</span>
+          </button>
+        </div>
+      </footer>
     </div>
   );
 }
