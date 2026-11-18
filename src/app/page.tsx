@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { Loader2, Database, Search, ShieldCheck } from "lucide-react";
 import { Header } from "../components/Header";
 import { ScenarioBar, DEMO_SCENARIOS, ScenarioItem } from "../components/ScenarioBar";
 import { ShipmentCockpit } from "../components/ShipmentCockpit";
@@ -274,6 +275,7 @@ export default function Home() {
       <ScenarioBar
         activeScenarioId={activeScenarioId}
         onSelectScenario={handleSelectScenario}
+        isLoading={isLoading}
       />
 
       {/* Main Workbench */}
@@ -283,6 +285,7 @@ export default function Home() {
           <ShipmentCockpit
             shipments={SAMPLE_SHIPMENTS}
             selectedShipment={selectedShipment}
+            isLoading={isLoading}
             onSelectShipment={(s) => {
               setSelectedShipment(s);
               const matchingSc = DEMO_SCENARIOS.find((sc) => sc.containerNo === s.containerNo);
@@ -315,6 +318,52 @@ export default function Home() {
           />
         </section>
       </main>
+
+      {/* Centered Loading Progress Overlay (Prevents Double Clicks & Shows Live Verification Steps) */}
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 dark:bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-2xl max-w-md w-full text-center space-y-4">
+            {/* Animated Spinner Icon */}
+            <div className="h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center mx-auto text-slate-800 dark:text-cyan-400 shadow-xs">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                Sedang Menjalankan Audit Kepabeanan...
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Sinkronisasi live dengan Gemini AI & Database Partisi Supabase
+              </p>
+            </div>
+
+            {/* Stepper Checklist */}
+            <div className="bg-slate-50 dark:bg-slate-950/70 rounded-xl p-3 border border-slate-200 dark:border-slate-800 text-left space-y-2 text-xs font-mono">
+              <div className="flex items-center space-x-2 text-slate-700 dark:text-slate-300">
+                <Database className="h-3.5 w-3.5 text-blue-600 dark:text-cyan-400 shrink-0" />
+                <span className="truncate">1. Pengecekan manifest & status partisi Q1...</span>
+              </div>
+              <div className="flex items-center space-x-2 text-slate-700 dark:text-slate-300">
+                <Search className="h-3.5 w-3.5 text-indigo-600 dark:text-blue-400 shrink-0" />
+                <span className="truncate">2. Embedding query & RAG HNSW regulasi pabean...</span>
+              </div>
+              <div className="flex items-center space-x-2 text-slate-700 dark:text-slate-300">
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span className="truncate">3. Sintesis arahan hukum & draf surat sanggahan...</span>
+              </div>
+            </div>
+
+            {/* Subtle Progress Bar */}
+            <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-slate-900 dark:bg-cyan-500 rounded-full w-2/3 animate-pulse mx-auto"></div>
+            </div>
+
+            <p className="text-[11px] text-slate-400 font-mono">
+              Mohon tunggu, proses inspeksi sedang berlangsung
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Architecture & Engineering Specification Modal */}
       <ArchitectureModal

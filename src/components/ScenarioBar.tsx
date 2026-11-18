@@ -55,9 +55,10 @@ export const DEMO_SCENARIOS: ScenarioItem[] = [
 interface ScenarioBarProps {
   activeScenarioId: string;
   onSelectScenario: (scenario: ScenarioItem) => void;
+  isLoading?: boolean;
 }
 
-export function ScenarioBar({ activeScenarioId, onSelectScenario }: ScenarioBarProps) {
+export function ScenarioBar({ activeScenarioId, onSelectScenario, isLoading }: ScenarioBarProps) {
   const getThemeStyles = (theme: string, isActive: boolean) => {
     if (theme === "red") {
       return isActive
@@ -108,11 +109,11 @@ export function ScenarioBar({ activeScenarioId, onSelectScenario }: ScenarioBarP
             return (
               <button
                 key={sc.id}
+                disabled={isLoading}
                 onClick={() => onSelectScenario(sc)}
-                className={`p-2 rounded-lg border text-left transition flex items-center space-x-2 ${getThemeStyles(
-                  sc.theme,
-                  isActive
-                )}`}
+                className={`p-2 rounded-lg border text-left transition flex items-center space-x-2 ${
+                  isLoading ? "opacity-60 cursor-not-allowed" : ""
+                } ${getThemeStyles(sc.theme, isActive)}`}
               >
                 {getIcon(sc.theme)}
                 <div className="min-w-0 flex-1">

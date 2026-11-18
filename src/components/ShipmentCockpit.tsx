@@ -19,6 +19,7 @@ interface ShipmentCockpitProps {
   selectedShipment: ShipmentRecord;
   onSelectShipment: (shipment: ShipmentRecord) => void;
   onAskCopilot: (prompt: string) => void;
+  isLoading?: boolean;
 }
 
 export function ShipmentCockpit({
@@ -26,6 +27,7 @@ export function ShipmentCockpit({
   selectedShipment,
   onSelectShipment,
   onAskCopilot,
+  isLoading,
 }: ShipmentCockpitProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -82,8 +84,11 @@ export function ShipmentCockpit({
             return (
               <button
                 key={s.id}
+                disabled={isLoading}
                 onClick={() => onSelectShipment(s)}
                 className={`px-2.5 py-2 rounded-lg text-left transition border ${
+                  isLoading ? "opacity-60 cursor-not-allowed" : ""
+                } ${
                   isSelected
                     ? "bg-white dark:bg-slate-800 border-slate-900 dark:border-cyan-500 text-slate-900 dark:text-white shadow-xs font-semibold"
                     : "bg-slate-100/60 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50"
@@ -119,12 +124,15 @@ export function ShipmentCockpit({
           </div>
 
           <button
+            disabled={isLoading}
             onClick={() =>
               onAskCopilot(
                 `Check shipment #${selectedShipment.id} (${selectedShipment.containerNo}): What is its clearance status, risk factors, and mandatory regulations?`
               )
             }
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 text-xs font-medium border border-transparent dark:border-slate-700 transition shrink-0 shadow-xs"
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 text-xs font-medium border border-transparent dark:border-slate-700 transition shrink-0 shadow-xs ${
+              isLoading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
             <Search className="h-3.5 w-3.5" />
             <span>Audit Shipment</span>
