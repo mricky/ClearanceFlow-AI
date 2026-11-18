@@ -61,71 +61,73 @@ export function ScenarioBar({ activeScenarioId, onSelectScenario }: ScenarioBarP
   const getThemeStyles = (theme: string, isActive: boolean) => {
     if (theme === "red") {
       return isActive
-        ? "bg-red-950/60 border-red-500 text-white shadow-lg shadow-red-500/10"
-        : "bg-slate-900/80 border-slate-800 text-slate-300 hover:border-red-500/40 hover:bg-slate-900";
+        ? "bg-red-50 border-red-300 text-red-950 shadow-xs dark:bg-red-950/60 dark:border-red-500 dark:text-white"
+        : "bg-white border-slate-200 text-slate-700 hover:border-red-200 hover:bg-red-50/40 dark:bg-slate-900/80 dark:border-slate-800 dark:text-slate-300 dark:hover:border-red-500/40 dark:hover:bg-slate-900";
     }
     if (theme === "amber") {
       return isActive
-        ? "bg-amber-950/60 border-amber-500 text-white shadow-lg shadow-amber-500/10"
-        : "bg-slate-900/80 border-slate-800 text-slate-300 hover:border-amber-500/40 hover:bg-slate-900";
+        ? "bg-amber-50 border-amber-300 text-amber-950 shadow-xs dark:bg-amber-950/60 dark:border-amber-500 dark:text-white"
+        : "bg-white border-slate-200 text-slate-700 hover:border-amber-200 hover:bg-amber-50/40 dark:bg-slate-900/80 dark:border-slate-800 dark:text-slate-300 dark:hover:border-amber-500/40 dark:hover:bg-slate-900";
     }
     if (theme === "emerald") {
       return isActive
-        ? "bg-emerald-950/60 border-emerald-500 text-white shadow-lg shadow-emerald-500/10"
-        : "bg-slate-900/80 border-slate-800 text-slate-300 hover:border-emerald-500/40 hover:bg-slate-900";
+        ? "bg-emerald-50 border-emerald-300 text-emerald-950 shadow-xs dark:bg-emerald-950/60 dark:border-emerald-500 dark:text-white"
+        : "bg-white border-slate-200 text-slate-700 hover:border-emerald-200 hover:bg-emerald-50/40 dark:bg-slate-900/80 dark:border-slate-800 dark:text-slate-300 dark:hover:border-emerald-500/40 dark:hover:bg-slate-900";
     }
     return isActive
-      ? "bg-purple-950/60 border-purple-500 text-white shadow-lg shadow-purple-500/10"
-      : "bg-slate-900/80 border-slate-800 text-slate-300 hover:border-purple-500/40 hover:bg-slate-900";
+      ? "bg-indigo-50 border-indigo-300 text-indigo-950 shadow-xs dark:bg-purple-950/60 dark:border-purple-500 dark:text-white"
+      : "bg-white border-slate-200 text-slate-700 hover:border-indigo-200 hover:bg-indigo-50/40 dark:bg-slate-900/80 dark:border-slate-800 dark:text-slate-300 dark:hover:border-purple-500/40 dark:hover:bg-slate-900";
   };
 
   const getIcon = (theme: string) => {
-    if (theme === "red") return <ShieldAlert className="h-4 w-4 text-red-400" />;
-    if (theme === "amber") return <AlertTriangle className="h-4 w-4 text-amber-400" />;
-    if (theme === "emerald") return <CheckCircle2 className="h-4 w-4 text-emerald-400" />;
-    return <Flame className="h-4 w-4 text-purple-400" />;
+    if (theme === "red") return <ShieldAlert className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0" />;
+    if (theme === "amber") return <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />;
+    if (theme === "emerald") return <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />;
+    return <Flame className="h-4 w-4 text-indigo-600 dark:text-purple-400 shrink-0" />;
   };
 
   return (
-    <div className="bg-slate-950 border-b border-slate-800/80 px-4 py-2.5">
+    <div className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800/80 px-4 py-2.5 transition-colors">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-2.5">
         <div className="flex items-center space-x-2 shrink-0">
-          <div className="h-6 w-6 rounded bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
-            <Play className="h-3 w-3 text-cyan-400 fill-cyan-400" />
+          <div className="h-6 w-6 rounded bg-slate-100 border border-slate-200 dark:bg-cyan-500/10 dark:border-cyan-500/30 flex items-center justify-center">
+            <Play className="h-3 w-3 text-slate-700 dark:text-cyan-400 fill-slate-700 dark:fill-cyan-400" />
           </div>
           <div>
-            <span className="text-xs font-bold text-white uppercase tracking-wider">
-              1-Click Test Scenarios:
+            <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+              Operational Test Scenarios:
             </span>
-            <p className="text-[10px] text-slate-400">Click any scenario to run live agent audit</p>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400">Select scenario to execute regulatory audit</p>
           </div>
         </div>
 
         {/* 4 Interactive Scenario Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 w-full md:w-auto flex-1 md:max-w-4xl">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 w-full md:w-auto flex-1 md:max-w-4xl md:ml-4">
           {DEMO_SCENARIOS.map((sc) => {
             const isActive = sc.id === activeScenarioId;
             return (
               <button
                 key={sc.id}
                 onClick={() => onSelectScenario(sc)}
-                className={`p-2 rounded-lg border text-left transition flex items-center space-x-2.5 ${getThemeStyles(
+                className={`p-2 rounded-lg border text-left transition flex items-center space-x-2 ${getThemeStyles(
                   sc.theme,
                   isActive
                 )}`}
               >
-                <div className="shrink-0">{getIcon(sc.theme)}</div>
+                {getIcon(sc.theme)}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-black/40 text-slate-400">
+                    <span className="text-[10px] font-mono font-bold tracking-tight opacity-80 uppercase truncate">
                       {sc.badge}
                     </span>
                     {isActive && (
-                      <span className="text-[9px] font-mono text-cyan-400 font-bold">ACTIVE</span>
+                      <span className="text-[9px] font-bold px-1 py-0.2 rounded bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-mono">
+                        ACTIVE
+                      </span>
                     )}
                   </div>
-                  <p className="text-xs font-semibold truncate text-white mt-0.5">{sc.title}</p>
-                  <p className="text-[10px] text-slate-400 truncate">{sc.subtitle}</p>
+                  <p className="text-xs font-semibold truncate leading-tight mt-0.5">{sc.title}</p>
+                  <p className="text-[10px] opacity-70 truncate font-mono mt-0.5">{sc.subtitle}</p>
                 </div>
               </button>
             );

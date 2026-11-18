@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Header } from "../components/Header";
 import { ScenarioBar, DEMO_SCENARIOS, ScenarioItem } from "../components/ScenarioBar";
 import { ShipmentCockpit } from "../components/ShipmentCockpit";
@@ -25,6 +25,32 @@ export default function Home() {
   const [isArchModalOpen, setIsArchModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentQuery, setCurrentQuery] = useState<string>(DEMO_SCENARIOS[0].query);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("clearanceflow_theme") as "light" | "dark" | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      if (savedTheme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
+  const handleToggleTheme = () => {
+    const nextTheme = theme === "light" ? "dark" : "light";
+    setTheme(nextTheme);
+    localStorage.setItem("clearanceflow_theme", nextTheme);
+    if (nextTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
 
   // Initial Scenario 1 (Red Channel Crisis) state
   const [toolTraces, setToolTraces] = useState<ToolExecutionTrace[]>([
@@ -120,13 +146,11 @@ export default function Home() {
       traces.push(ragTrace);
 
       // Step 3: Demurrage Calc if overdue
-      let calcTraceResult: ToolExecutionTrace | null = null;
       let letter: string | null = null;
 
       if (shipment && (shipment.demurrageDaysOverdue > 0 || query.toLowerCase().includes("demurrage") || query.toLowerCase().includes("denda"))) {
-        const { calculation, trace: cTrace } = calculateDemurrageRisk(shipment.containerNo);
+        const { trace: cTrace } = calculateDemurrageRisk(shipment.containerNo);
         traces.push(cTrace);
-        calcTraceResult = cTrace;
 
         // Step 4: Dispute generation if overdue
         if (shipment.status === "DEMURRAGE_OVERDUE" || query.toLowerCase().includes("sanggah") || query.toLowerCase().includes("dispute")) {
@@ -214,20 +238,24 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors">
       {/* Header */}
-      <Header onOpenArchModal={() => setIsArchModalOpen(true)} />
+      <Header
+        onOpenArchModal={() => setIsArchModalOpen(true)}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
+      />
 
-      {/* Sticky 1-Click Scenario Bar */}
+      {/* Sticky 1-Click Operational Scenario Bar */}
       <ScenarioBar
         activeScenarioId={activeScenarioId}
         onSelectScenario={handleSelectScenario}
       />
 
-      {/* Main Palantir/Flexport Industrial Workbench */}
+      {/* Main Workbench */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Left Side: Container Manifest & Physical Telemetry (5 cols) */}
-        <section className="lg:col-span-5 h-[650px] lg:h-[calc(100vh-10.5rem)] min-h-[500px]">
+        <section className="lg:col-span-5 h-[620px] lg:h-[calc(100vh-10.5rem)] min-h-[500px]">
           <ShipmentCockpit
             shipments={SAMPLE_SHIPMENTS}
             selectedShipment={selectedShipment}
@@ -239,8 +267,8 @@ export default function Home() {
           />
         </section>
 
-        {/* Right Side: Palantir-Style Agentic Audit Inspector (7 cols) */}
-        <section className="lg:col-span-7 h-[650px] lg:h-[calc(100vh-10.5rem)] min-h-[500px]">
+        {/* Right Side: Agentic Audit Inspector (7 cols) */}
+        <section className="lg:col-span-7 h-[620px] lg:h-[calc(100vh-10.5rem)] min-h-[500px]">
           <AuditInspector
             query={currentQuery}
             onSearch={(q) => executeAudit(q)}
