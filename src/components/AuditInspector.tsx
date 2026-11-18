@@ -18,8 +18,10 @@ import {
   Package,
   Layers,
   X,
+  Eye,
 } from "lucide-react";
 import { ToolExecutionTrace } from "../lib/types";
+import { PdfViewerModal } from "./PdfViewerModal";
 
 interface AuditInspectorProps {
   query: string;
@@ -69,98 +71,123 @@ export function AuditInspector({
   };
 
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
+  const [pdfDocInstance, setPdfDocInstance] = useState<any>(null);
 
-  const handleDownloadPdf = async () => {
+  const generatePdf = async () => {
+    if (!disputeLetter) return null;
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+
+    const pageWidth = 210;
+    const margin = 20;
+    const contentWidth = pageWidth - margin * 2;
+    let y = 22;
+
+    // Header Banner
+    doc.setFillColor(15, 23, 42); // slate-900
+    doc.rect(margin, y, contentWidth, 14, "F");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(255, 255, 255);
+    doc.text("CLEARANCEFLOW AI — SISTEM KEPATUHAN PABEAN", margin + 4, y + 6);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(203, 213, 225); // slate-300
+    doc.text("Surat Resmi Sanggahan & Permohonan Keringanan Demurrage Pelabuhan", margin + 4, y + 10.5);
+
+    y += 22;
+
+    // Body Text
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(30, 41, 59);
+
+    const lines = disputeLetter.split("\n");
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      if (
+        line.startsWith("FORMAL NOTICE") ||
+        line.startsWith("1. LEGAL") ||
+        line.startsWith("2. STATUTORY") ||
+        line.startsWith("3. REQUESTED") ||
+        line.startsWith("Date:") ||
+        line.startsWith("To:") ||
+        line.startsWith("Subject:")
+      ) {
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(15, 23, 42);
+        y += 1.5;
+      } else {
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(51, 65, 85);
+      }
+
+      const splitLines = doc.splitTextToSize(line || " ", contentWidth);
+
+      for (const subLine of splitLines) {
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(subLine, margin, y);
+        y += 5.2;
+      }
+    }
+
+    // Footer
+    const totalPages = doc.getNumberOfPages();
+    for (let p = 1; p <= totalPages; p++) {
+      doc.setPage(p);
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.line(margin, 282, pageWidth - margin, 282);
+      doc.text(
+        `Dokumen resmi dihasilkan oleh ClearanceFlow AI • Halaman ${p} dari ${totalPages}`,
+        margin,
+        287
+      );
+    }
+
+    return doc;
+  };
+
+  const handleOpenPdfPreview = async () => {
     if (!disputeLetter) return;
     setIsDownloadingPdf(true);
     try {
-      const { jsPDF } = await import("jspdf");
-      const doc = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      });
-
-      const pageWidth = 210;
-      const margin = 20;
-      const contentWidth = pageWidth - margin * 2;
-      let y = 22;
-
-      // Header Banner
-      doc.setFillColor(15, 23, 42); // slate-900
-      doc.rect(margin, y, contentWidth, 14, "F");
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.setTextColor(255, 255, 255);
-      doc.text("CLEARANCEFLOW AI — SISTEM KEPATUHAN PABEAN", margin + 4, y + 6);
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
-      doc.setTextColor(203, 213, 225); // slate-300
-      doc.text("Surat Resmi Sanggahan & Permohonan Keringanan Demurrage Pelabuhan", margin + 4, y + 10.5);
-
-      y += 22;
-
-      // Body Text
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9.5);
-      doc.setTextColor(30, 41, 59);
-
-      const lines = disputeLetter.split("\n");
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-
-        if (
-          line.startsWith("FORMAL NOTICE") ||
-          line.startsWith("1. LEGAL") ||
-          line.startsWith("2. STATUTORY") ||
-          line.startsWith("3. REQUESTED") ||
-          line.startsWith("Date:") ||
-          line.startsWith("To:") ||
-          line.startsWith("Subject:")
-        ) {
-          doc.setFont("helvetica", "bold");
-          doc.setTextColor(15, 23, 42);
-          y += 1.5;
-        } else {
-          doc.setFont("helvetica", "normal");
-          doc.setTextColor(51, 65, 85);
-        }
-
-        const splitLines = doc.splitTextToSize(line || " ", contentWidth);
-
-        for (const subLine of splitLines) {
-          if (y > 270) {
-            doc.addPage();
-            y = 20;
-          }
-          doc.text(subLine, margin, y);
-          y += 5.2;
-        }
-      }
-
-      // Footer
-      const totalPages = doc.getNumberOfPages();
-      for (let p = 1; p <= totalPages; p++) {
-        doc.setPage(p);
-        doc.setFont("helvetica", "italic");
-        doc.setFontSize(8);
-        doc.setTextColor(148, 163, 184);
-        doc.line(margin, 282, pageWidth - margin, 282);
-        doc.text(
-          `Dokumen resmi dihasilkan oleh ClearanceFlow AI • Halaman ${p} dari ${totalPages}`,
-          margin,
-          287
-        );
-      }
-
-      doc.save(`Surat-Sanggahan-Demurrage-${Date.now().toString().slice(-4)}.pdf`);
+      const doc = await generatePdf();
+      if (!doc) return;
+      setPdfDocInstance(doc);
+      const blob = doc.output("blob");
+      const url = URL.createObjectURL(blob);
+      setPdfBlobUrl(url);
+      setIsPdfModalOpen(true);
     } catch (err) {
-      console.error("Gagal men-generate PDF:", err);
+      console.error("Gagal membuat pratinjau PDF:", err);
     } finally {
       setIsDownloadingPdf(false);
+    }
+  };
+
+  const handleDownloadFromPreview = () => {
+    if (pdfDocInstance) {
+      pdfDocInstance.save(`Surat-Sanggahan-Demurrage-${Date.now().toString().slice(-4)}.pdf`);
+    } else if (pdfBlobUrl) {
+      const a = document.createElement("a");
+      a.href = pdfBlobUrl;
+      a.download = `Surat-Sanggahan-Demurrage-${Date.now().toString().slice(-4)}.pdf`;
+      a.click();
     }
   };
 
@@ -486,13 +513,13 @@ export function AuditInspector({
                   <span>{copied ? "Tersalin" : "Salin Teks"}</span>
                 </button>
                 <button
-                  onClick={handleDownloadPdf}
+                  onClick={handleOpenPdfPreview}
                   disabled={isDownloadingPdf}
-                  className="flex items-center space-x-1.5 px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-medium text-[11px] font-sans border border-amber-600 transition shadow-xs"
-                  title="Unduh draf surat sanggahan resmi dalam format PDF siap cetak/kirim"
+                  className="flex items-center space-x-1.5 px-3 py-1 rounded bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-medium text-[11px] font-sans border border-amber-600 transition shadow-xs"
+                  title="Lihat pratinjau dokumen PDF resmi sebelum mengunduh"
                 >
-                  <Download className="h-3.5 w-3.5" />
-                  <span>{isDownloadingPdf ? "Membuat PDF..." : "Unduh PDF"}</span>
+                  <Eye className="h-3.5 w-3.5" />
+                  <span>{isDownloadingPdf ? "Memuat PDF..." : "Lihat & Unduh PDF"}</span>
                 </button>
               </div>
             </div>
@@ -519,6 +546,21 @@ export function AuditInspector({
           </div>
         )}
       </div>
+
+      {/* Official PDF Document Viewer Modal */}
+      <PdfViewerModal
+        isOpen={isPdfModalOpen}
+        onClose={() => {
+          setIsPdfModalOpen(false);
+          if (pdfBlobUrl) {
+            URL.revokeObjectURL(pdfBlobUrl);
+            setPdfBlobUrl(null);
+          }
+        }}
+        pdfUrl={pdfBlobUrl}
+        onDownload={handleDownloadFromPreview}
+        containerNo={dbTrace?.result?.containerNo}
+      />
     </div>
   );
 }
