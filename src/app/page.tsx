@@ -119,11 +119,33 @@ export default function Home() {
   const handleSelectScenario = (scenario: ScenarioItem) => {
     setActiveScenarioId(scenario.id);
     setCurrentQuery(scenario.query);
+    const matchingShipment = SAMPLE_SHIPMENTS.find((s) => s.containerNo === scenario.containerNo);
+    if (matchingShipment) {
+      setSelectedShipment(matchingShipment);
+    }
     executeAudit(scenario.query, scenario.containerNo);
   };
 
   // Execute Agentic Audit Workflow (Live API with Graceful Client Fallback)
   const executeAudit = async (query: string, explicitContainer?: string) => {
+    // Pre-sync selected shipment immediately for snappy UI
+    const targetIdentifier =
+      explicitContainer ||
+      query.match(/(?:MSKU|OCLU|CMAU|EGLV)[-\s]?\d{6,7}/i)?.[0] ||
+      (query.includes("033") ? "MSKU-992104" : query.includes("089") ? "OCLU-883192" : query.includes("112") ? "CMAU-410291" : query.includes("145") ? "EGLV-771820" : null);
+
+    if (targetIdentifier) {
+      const match = SAMPLE_SHIPMENTS.find(
+        (s) =>
+          s.containerNo.toLowerCase().includes(targetIdentifier.toLowerCase()) ||
+          s.id.toLowerCase().includes(targetIdentifier.toLowerCase()) ||
+          s.waybillNo.toLowerCase().includes(targetIdentifier.toLowerCase())
+      );
+      if (match) {
+        setSelectedShipment(match);
+      }
+    }
+
     setIsLoading(true);
 
     try {
@@ -343,20 +365,6 @@ export default function Home() {
         isOpen={isContainerModalOpen}
         onClose={() => setIsContainerModalOpen(false)}
         selectedShipment={selectedShipment}
-        shipments={SAMPLE_SHIPMENTS}
-        onSelectShipment={(s) => {
-          setSelectedShipment(s);
-          const matchingSc = DEMO_SCENARIOS.find((sc) => sc.containerNo === s.containerNo);
-          if (matchingSc) {
-            setActiveScenarioId(matchingSc.id);
-            setCurrentQuery(matchingSc.query);
-            executeAudit(matchingSc.query, s.containerNo);
-          } else {
-            const q = `Audit container #${s.containerNo}`;
-            setCurrentQuery(q);
-            executeAudit(q, s.containerNo);
-          }
-        }}
       />
 
       {/* Architecture & Engineering Specification Modal */}

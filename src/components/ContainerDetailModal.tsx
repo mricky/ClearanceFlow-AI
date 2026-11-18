@@ -18,16 +18,12 @@ interface ContainerDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedShipment: ShipmentRecord;
-  shipments: ShipmentRecord[];
-  onSelectShipment: (shipment: ShipmentRecord) => void;
 }
 
 export function ContainerDetailModal({
   isOpen,
   onClose,
   selectedShipment,
-  shipments,
-  onSelectShipment,
 }: ContainerDetailModalProps) {
   if (!isOpen) return null;
 
@@ -68,15 +64,20 @@ export function ContainerDetailModal({
         {/* Top Header */}
         <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3.5 mb-4">
           <div className="flex items-center space-x-2.5">
-            <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-800 dark:text-cyan-400">
-              <Package className="h-4 w-4" />
+            <div className="h-9 w-9 rounded-lg bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-700 dark:text-cyan-400">
+              <Package className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-                Rincian Telemetri Fisik Peti Kemas & Manifest Pelabuhan
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-                Partisi Database: <span className="text-slate-700 dark:text-cyan-400 font-semibold">shipments_2026_q1</span> (Supabase Cloud Live)
+              <div className="flex items-center space-x-2">
+                <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                  Rincian Kontainer #{selectedShipment.containerNo}
+                </h2>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                  {selectedShipment.id}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+                Data Partisi: <span className="text-slate-700 dark:text-cyan-400 font-semibold">shipments_2026_q1</span> (Supabase Cloud Live)
               </p>
             </div>
           </div>
@@ -86,32 +87,6 @@ export function ContainerDetailModal({
           >
             <X className="h-5 w-5" />
           </button>
-        </div>
-
-        {/* Shipment Selector Tabs */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mb-4">
-          {shipments.map((s) => {
-            const isSelected = s.id === selectedShipment.id;
-            return (
-              <button
-                key={s.id}
-                onClick={() => onSelectShipment(s)}
-                className={`px-3 py-2 rounded-lg text-left transition border ${
-                  isSelected
-                    ? "bg-slate-900 text-white dark:bg-slate-800 dark:text-white border-slate-900 dark:border-cyan-500 shadow-xs font-semibold"
-                    : "bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800/80 text-slate-600 dark:text-slate-400 hover:bg-slate-100 hover:text-slate-900"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs">{s.id}</span>
-                  {s.status === "CUSTOMS_HOLD_RED_CHANNEL" && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-red-500"></span>
-                  )}
-                </div>
-                <p className="text-[10px] truncate opacity-80 mt-0.5">{s.containerNo}</p>
-              </button>
-            );
-          })}
         </div>
 
         {/* Content Body */}
