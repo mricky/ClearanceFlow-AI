@@ -337,7 +337,7 @@ export function AuditInspector({
                   </span>{" "}
                   {dbTrace?.result?.demurrageDaysOverdue > 0 && (
                     <span className="text-red-600 dark:text-red-400 font-bold">
-                      ({dbTrace.result.demurrageDaysOverdue} Hari Denda Berjalan)
+                      ({dbTrace?.result?.demurrageDaysOverdue} Hari Denda Berjalan)
                     </span>
                   )}
                 </p>
