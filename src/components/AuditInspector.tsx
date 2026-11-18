@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   PackageCheck,
   Layers,
+  X,
 } from "lucide-react";
 import { ToolExecutionTrace } from "../lib/types";
 
@@ -45,6 +46,7 @@ export function AuditInspector({
   const [searchInput, setSearchInput] = useState(query);
   const [copied, setCopied] = useState(false);
   const [viewMode, setViewMode] = useState<"ops" | "dev">("ops");
+  const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
     setSearchInput(query);
@@ -88,24 +90,42 @@ export function AuditInspector({
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-xs flex flex-col h-full transition-colors">
-      {/* Top Command Bar (Inspection Search) */}
-      <div className="p-3.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/80">
-        <form onSubmit={handleFormSubmit} className="flex items-center space-x-2">
+      {/* Top Command Bar (Inspection Search - Multiline Auto-Expand) */}
+      <div className="p-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/80 transition-all">
+        <form onSubmit={handleFormSubmit} className="flex items-start space-x-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-cyan-400" />
-            <input
-              type="text"
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-cyan-400 pointer-events-none" />
+            <textarea
+              rows={isFocused || searchInput.length > 65 ? 2 : 1}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Cari nomor kontainer, B/L, atau pasal regulasi pabean (e.g. MSKU, OCLU, SPJM, demurrage, SPPB)..."
-              className="w-full pl-9 pr-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-slate-900 dark:focus:border-cyan-500 font-mono transition shadow-xs"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleFormSubmit(e);
+                }
+              }}
+              placeholder="Cari nomor kontainer, B/L, atau kueri regulasi kepabeanan..."
+              className="w-full pl-9 pr-7 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-slate-900 dark:focus:border-cyan-500 font-mono transition-all resize-none shadow-xs leading-relaxed"
             />
+            {searchInput && (
+              <button
+                type="button"
+                onClick={() => setSearchInput("")}
+                className="absolute right-2 top-2.5 p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                title="Hapus teks"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
           </div>
           <button
             type="submit"
             disabled={isLoading || !searchInput.trim()}
             title="Eksekusi kueri pencarian atau audit regulasi kepabeanan"
-            className="px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-cyan-600 dark:hover:bg-cyan-500 disabled:opacity-40 text-white font-medium text-xs transition flex items-center space-x-1.5 shrink-0 shadow-xs"
+            className="px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-cyan-600 dark:hover:bg-cyan-500 disabled:opacity-40 text-white font-medium text-xs transition flex items-center space-x-1.5 shrink-0 shadow-xs h-9"
           >
             <Play className="h-3.5 w-3.5 fill-white" />
             <span>Cari & Audit</span>
