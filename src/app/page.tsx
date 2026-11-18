@@ -285,9 +285,14 @@ export default function Home() {
             selectedShipment={selectedShipment}
             onSelectShipment={(s) => {
               setSelectedShipment(s);
-              executeAudit(`Audit container #${s.containerNo}`, s.containerNo);
+              const q = `Audit container #${s.containerNo}`;
+              setCurrentQuery(q);
+              executeAudit(q, s.containerNo);
             }}
-            onAskCopilot={(prompt) => executeAudit(prompt, selectedShipment.containerNo)}
+            onAskCopilot={(prompt) => {
+              setCurrentQuery(prompt);
+              executeAudit(prompt, selectedShipment.containerNo);
+            }}
           />
         </section>
 

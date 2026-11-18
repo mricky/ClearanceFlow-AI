@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   Database,
@@ -41,6 +41,10 @@ export function AuditInspector({
 }: AuditInspectorProps) {
   const [searchInput, setSearchInput] = useState(query);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setSearchInput(query);
+  }, [query]);
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
