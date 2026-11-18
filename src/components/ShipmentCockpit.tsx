@@ -125,6 +125,7 @@ export function ShipmentCockpit({
 
           <button
             disabled={isLoading}
+            title="Jalankan audit kepabeanan untuk kargo terpilih ini"
             onClick={() =>
               onAskCopilot(
                 `Check shipment #${selectedShipment.id} (${selectedShipment.containerNo}): What is its clearance status, risk factors, and mandatory regulations?`
@@ -135,7 +136,7 @@ export function ShipmentCockpit({
             }`}
           >
             <Search className="h-3.5 w-3.5" />
-            <span>Audit Shipment</span>
+            <span>Inspeksi Kargo Ini</span>
           </button>
         </div>
 

@@ -104,10 +104,11 @@ export function AuditInspector({
           <button
             type="submit"
             disabled={isLoading || !searchInput.trim()}
+            title="Eksekusi kueri pencarian atau audit regulasi kepabeanan"
             className="px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-cyan-600 dark:hover:bg-cyan-500 disabled:opacity-40 text-white font-medium text-xs transition flex items-center space-x-1.5 shrink-0 shadow-xs"
           >
             <Play className="h-3.5 w-3.5 fill-white" />
-            <span>Audit Kontainer</span>
+            <span>Cari & Audit</span>
           </button>
         </form>
       </div>
