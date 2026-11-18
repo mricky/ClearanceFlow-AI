@@ -4,9 +4,9 @@ import React, { useState, useEffect } from "react";
 import { Loader2, Database, Search, ShieldCheck } from "lucide-react";
 import { Header } from "../components/Header";
 import { ScenarioBar, DEMO_SCENARIOS, ScenarioItem } from "../components/ScenarioBar";
-import { ShipmentCockpit } from "../components/ShipmentCockpit";
 import { AuditInspector } from "../components/AuditInspector";
 import { ArchitectureModal } from "../components/ArchitectureModal";
+import { ContainerDetailModal } from "../components/ContainerDetailModal";
 import { SAMPLE_SHIPMENTS } from "../lib/mockData";
 import { ShipmentRecord, ToolExecutionTrace } from "../lib/types";
 import { lookupShipment, calculateDemurrageRisk, generateDisputeDraft } from "../lib/mcpTools";
@@ -24,6 +24,7 @@ export default function Home() {
   const [selectedShipment, setSelectedShipment] = useState<ShipmentRecord>(SAMPLE_SHIPMENTS[0]);
   const [activeScenarioId, setActiveScenarioId] = useState<string>("sc-1");
   const [isArchModalOpen, setIsArchModalOpen] = useState(false);
+  const [isContainerModalOpen, setIsContainerModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentQuery, setCurrentQuery] = useState<string>(DEMO_SCENARIOS[0].query);
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -278,45 +279,17 @@ export default function Home() {
         isLoading={isLoading}
       />
 
-      {/* Main Workbench */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Left Side: Container Manifest & Physical Telemetry (5 cols) */}
-        <section className="lg:col-span-5 h-[620px] lg:h-[calc(100vh-10.5rem)] min-h-[500px]">
-          <ShipmentCockpit
-            shipments={SAMPLE_SHIPMENTS}
-            selectedShipment={selectedShipment}
-            isLoading={isLoading}
-            onSelectShipment={(s) => {
-              setSelectedShipment(s);
-              const matchingSc = DEMO_SCENARIOS.find((sc) => sc.containerNo === s.containerNo);
-              if (matchingSc) {
-                setActiveScenarioId(matchingSc.id);
-                setCurrentQuery(matchingSc.query);
-                executeAudit(matchingSc.query, s.containerNo);
-              } else {
-                const q = `Audit container #${s.containerNo}`;
-                setCurrentQuery(q);
-                executeAudit(q, s.containerNo);
-              }
-            }}
-            onAskCopilot={(prompt) => {
-              setCurrentQuery(prompt);
-              executeAudit(prompt, selectedShipment.containerNo);
-            }}
-          />
-        </section>
-
-        {/* Right Side: Agentic Audit Inspector (7 cols) */}
-        <section className="lg:col-span-7 h-[620px] lg:h-[calc(100vh-10.5rem)] min-h-[500px]">
-          <AuditInspector
-            query={currentQuery}
-            onSearch={(q) => executeAudit(q)}
-            isLoading={isLoading}
-            toolTraces={toolTraces}
-            verdict={verdict}
-            disputeLetter={disputeLetter}
-          />
-        </section>
+      {/* Main Workbench (Focused Single-Workspace Layout) */}
+      <main className="flex-1 max-w-5xl w-full mx-auto p-3 sm:p-4 lg:p-6 flex flex-col h-[calc(100vh-10.5rem)] min-h-[580px]">
+        <AuditInspector
+          query={currentQuery}
+          onSearch={(q) => executeAudit(q)}
+          isLoading={isLoading}
+          toolTraces={toolTraces}
+          verdict={verdict}
+          disputeLetter={disputeLetter}
+          onOpenContainerModal={() => setIsContainerModalOpen(true)}
+        />
       </main>
 
       {/* Centered Loading Progress Overlay (Prevents Double Clicks & Shows Live Verification Steps) */}
@@ -364,6 +337,27 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Container Telemetry & Physical Manifest Detail Modal */}
+      <ContainerDetailModal
+        isOpen={isContainerModalOpen}
+        onClose={() => setIsContainerModalOpen(false)}
+        selectedShipment={selectedShipment}
+        shipments={SAMPLE_SHIPMENTS}
+        onSelectShipment={(s) => {
+          setSelectedShipment(s);
+          const matchingSc = DEMO_SCENARIOS.find((sc) => sc.containerNo === s.containerNo);
+          if (matchingSc) {
+            setActiveScenarioId(matchingSc.id);
+            setCurrentQuery(matchingSc.query);
+            executeAudit(matchingSc.query, s.containerNo);
+          } else {
+            const q = `Audit container #${s.containerNo}`;
+            setCurrentQuery(q);
+            executeAudit(q, s.containerNo);
+          }
+        }}
+      />
 
       {/* Architecture & Engineering Specification Modal */}
       <ArchitectureModal

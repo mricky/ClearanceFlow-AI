@@ -15,6 +15,7 @@ import {
   ArrowRight,
   ShieldCheck,
   PackageCheck,
+  Package,
   Layers,
   X,
 } from "lucide-react";
@@ -33,6 +34,7 @@ interface AuditInspectorProps {
     citations: { title: string; subCategory: string; contentSnippet: string }[];
   };
   disputeLetter: string | null;
+  onOpenContainerModal?: () => void;
 }
 
 export function AuditInspector({
@@ -42,6 +44,7 @@ export function AuditInspector({
   toolTraces,
   verdict,
   disputeLetter,
+  onOpenContainerModal,
 }: AuditInspectorProps) {
   const [searchInput, setSearchInput] = useState(query);
   const [copied, setCopied] = useState(false);
@@ -135,8 +138,8 @@ export function AuditInspector({
 
       {/* Main Inspection Body */}
       <div className="p-4 space-y-3.5 overflow-y-auto flex-1 text-xs">
-        {/* Header Title with View Mode Toggle */}
-        <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800/80 gap-2">
+        {/* Header Title with View Mode Toggle & Container Detail Modal Button */}
+        <div className="flex flex-wrap items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800/80 gap-2">
           <div className="flex items-center space-x-2">
             <ShieldCheck className="h-4 w-4 text-slate-700 dark:text-cyan-400" />
             <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">
@@ -144,30 +147,44 @@ export function AuditInspector({
             </h3>
           </div>
 
-          {/* Mode Switcher Toggle */}
-          <div className="flex items-center space-x-1 p-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shrink-0">
-            <button
-              type="button"
-              onClick={() => setViewMode("ops")}
-              className={`px-2 py-0.5 rounded text-[10px] font-mono transition ${
-                viewMode === "ops"
-                  ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold shadow-xs"
-                  : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
-              }`}
-            >
-              Logistics Ops View
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("dev")}
-              className={`px-2 py-0.5 rounded text-[10px] font-mono transition ${
-                viewMode === "dev"
-                  ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold shadow-xs"
-                  : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
-              }`}
-            >
-              Dev Trace
-            </button>
+          <div className="flex items-center space-x-2">
+            {onOpenContainerModal && (
+              <button
+                type="button"
+                onClick={onOpenContainerModal}
+                className="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-cyan-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 font-sans text-xs font-semibold transition shadow-xs"
+                title="Buka rincian telemetri IoT, suhu reefer, segel, dan riwayat pelabuhan kontainer"
+              >
+                <Package className="h-3.5 w-3.5 text-blue-600 dark:text-cyan-400" />
+                <span>Lihat Detail Kontainer</span>
+              </button>
+            )}
+
+            {/* Mode Switcher Toggle */}
+            <div className="flex items-center space-x-1 p-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewMode("ops")}
+                className={`px-2 py-0.5 rounded text-[10px] font-mono transition ${
+                  viewMode === "ops"
+                    ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold shadow-xs"
+                    : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                }`}
+              >
+                Logistics Ops View
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("dev")}
+                className={`px-2 py-0.5 rounded text-[10px] font-mono transition ${
+                  viewMode === "dev"
+                    ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold shadow-xs"
+                    : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                }`}
+              >
+                Dev Trace
+              </button>
+            </div>
           </div>
         </div>
 
@@ -210,8 +227,18 @@ export function AuditInspector({
                 </p>
               </div>
               <div className="mt-2.5 pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[10px] font-mono text-slate-500">
-                <span>Pelabuhan: Tanjung Priok (IDJKT)</span>
-                <span className="text-emerald-700 dark:text-emerald-400 font-semibold">Segel Pabean Valid</span>
+                <span className="truncate">Pelabuhan: Tanjung Priok (IDJKT)</span>
+                {onOpenContainerModal && (
+                  <button
+                    type="button"
+                    onClick={onOpenContainerModal}
+                    className="flex items-center space-x-1 px-2.5 py-1 rounded-md bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 font-sans text-[11px] font-semibold transition shadow-xs shrink-0"
+                    title="Buka rincian sensor IoT, suhu reefer, segel, dan riwayat pelabuhan"
+                  >
+                    <Package className="h-3.5 w-3.5 text-blue-600 dark:text-cyan-400" />
+                    <span>Lihat Detail Kontainer</span>
+                  </button>
+                )}
               </div>
             </div>
 
