@@ -1,15 +1,16 @@
 "use client";
 
 import React from "react";
-import { Ship, Database, Cpu, ShieldCheck, Github, Info, Sun, Moon } from "lucide-react";
+import { Ship, Database, Cpu, ShieldCheck, Github, Info, Sun, Moon, Zap } from "lucide-react";
 
 interface HeaderProps {
   onOpenArchModal: () => void;
   theme: "light" | "dark";
   onToggleTheme: () => void;
+  isLiveAI?: boolean;
 }
 
-export function Header({ onOpenArchModal, theme, onToggleTheme }: HeaderProps) {
+export function Header({ onOpenArchModal, theme, onToggleTheme, isLiveAI }: HeaderProps) {
   return (
     <header className="border-b border-slate-200 bg-white/95 dark:border-slate-800 dark:bg-slate-950/90 backdrop-blur sticky top-0 z-40 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -26,6 +27,12 @@ export function Header({ onOpenArchModal, theme, onToggleTheme }: HeaderProps) {
               <span className="text-[11px] px-2 py-0.5 rounded font-mono font-medium bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">
                 CUSTOMS OS
               </span>
+              {isLiveAI && (
+                <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded font-mono text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                  <span>LIVE GEMINI MCP</span>
+                </span>
+              )}
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">
               Cross-Border Freight Compliance & Customs Brokerage
@@ -33,7 +40,7 @@ export function Header({ onOpenArchModal, theme, onToggleTheme }: HeaderProps) {
           </div>
         </div>
 
-        {/* Live Architecture Status Badges (Clean, no pulsing slop) */}
+        {/* Live Architecture Status Badges */}
         <div className="hidden lg:flex items-center space-x-2.5 font-mono text-xs">
           <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300">
             <Database className="h-3.5 w-3.5 text-blue-600 dark:text-cyan-400" />

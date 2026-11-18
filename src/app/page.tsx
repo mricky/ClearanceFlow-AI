@@ -26,6 +26,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentQuery, setCurrentQuery] = useState<string>(DEMO_SCENARIOS[0].query);
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [isLiveAI, setIsLiveAI] = useState<boolean>(true);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("clearanceflow_theme") as "light" | "dark" | null;
@@ -74,7 +75,7 @@ export default function Home() {
       toolName: "search_compliance_knowledge",
       arguments: { query: "SPJM Red Channel inspection frozen prawns CEISA", categoryFilter: "all" },
       result: {
-        method: "Hybrid Search (GIN + HNSW pgvector via RRF)",
+        method: "Gemini 3072d Dense Vector + PostgreSQL Lexical (RRF)",
         kConstant: 60,
         retrievedCount: 3,
         topRankedArticle: "SOP Jalur Pelayanan Impor Bea Cukai: Jalur Hijau, Jalur Kuning, dan Jalur Merah (SPJM)",
@@ -119,14 +120,41 @@ export default function Home() {
     executeAudit(scenario.query, scenario.containerNo);
   };
 
-  // Execute Agentic Audit Workflow
-  const executeAudit = (query: string, explicitContainer?: string) => {
+  // Execute Agentic Audit Workflow (Live API with Graceful Client Fallback)
+  const executeAudit = async (query: string, explicitContainer?: string) => {
     setIsLoading(true);
 
+    try {
+      const res = await fetch("/api/audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, explicitContainer }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.mode === "live_gemini") {
+          setIsLiveAI(true);
+          if (data.shipment) {
+            const foundInMock = SAMPLE_SHIPMENTS.find((s) => s.id === data.shipment.id || s.containerNo === data.shipment.containerNo);
+            setSelectedShipment(foundInMock || { ...SAMPLE_SHIPMENTS[0], ...data.shipment });
+          }
+          if (data.toolTraces) setToolTraces(data.toolTraces);
+          if (data.verdict) setVerdict(data.verdict);
+          setDisputeLetter(data.disputeLetter || null);
+          setIsLoading(false);
+          return;
+        }
+      }
+    } catch (apiErr) {
+      console.warn("Live API unreachable, using local engine fallback:", apiErr);
+      setIsLiveAI(false);
+    }
+
+    // Client-side fallback
     setTimeout(() => {
       const traces: ToolExecutionTrace[] = [];
 
-      // Step 1: Shipment lookup
       const targetIdentifier =
         explicitContainer ||
         query.match(/(?:MSKU|OCLU|CMAU|EGLV)[-\s]?\d{6,7}/i)?.[0] ||
@@ -139,20 +167,16 @@ export default function Home() {
         setSelectedShipment(shipment);
       }
 
-      // Step 2: RAG Search
       const { documents, trace: ragTrace } = searchComplianceRAG(
         `${query} ${shipment?.status || ""} ${shipment?.commodity || ""}`
       );
       traces.push(ragTrace);
 
-      // Step 3: Demurrage Calc if overdue
       let letter: string | null = null;
-
       if (shipment && (shipment.demurrageDaysOverdue > 0 || query.toLowerCase().includes("demurrage") || query.toLowerCase().includes("denda"))) {
         const { trace: cTrace } = calculateDemurrageRisk(shipment.containerNo);
         traces.push(cTrace);
 
-        // Step 4: Dispute generation if overdue
         if (shipment.status === "DEMURRAGE_OVERDUE" || query.toLowerCase().includes("sanggah") || query.toLowerCase().includes("dispute")) {
           const { draft, trace: dTrace } = generateDisputeDraft(
             shipment.id,
@@ -163,7 +187,6 @@ export default function Home() {
         }
       }
 
-      // Formulate Verdict
       const topDoc = documents[0];
       const secondDoc = documents[1];
 
@@ -244,6 +267,7 @@ export default function Home() {
         onOpenArchModal={() => setIsArchModalOpen(true)}
         theme={theme}
         onToggleTheme={handleToggleTheme}
+        isLiveAI={isLiveAI}
       />
 
       {/* Sticky 1-Click Operational Scenario Bar */}
