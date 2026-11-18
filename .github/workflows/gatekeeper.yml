@@ -78,9 +78,9 @@ jobs:
     needs: [security-gate, typecheck-gate]
     runs-on: ubuntu-latest
     env:
-      NEXT_PUBLIC_SUPABASE_URL: "https://mock-ci.supabase.co"
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: "mock-anon-key-ci"
-      GEMINI_API_KEY: "mock-gemini-key-ci"
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://mock-ci.supabase.co' }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock-anon-key-ci' }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || 'mock-gemini-key-ci' }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
