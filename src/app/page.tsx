@@ -285,9 +285,16 @@ export default function Home() {
             selectedShipment={selectedShipment}
             onSelectShipment={(s) => {
               setSelectedShipment(s);
-              const q = `Audit container #${s.containerNo}`;
-              setCurrentQuery(q);
-              executeAudit(q, s.containerNo);
+              const matchingSc = DEMO_SCENARIOS.find((sc) => sc.containerNo === s.containerNo);
+              if (matchingSc) {
+                setActiveScenarioId(matchingSc.id);
+                setCurrentQuery(matchingSc.query);
+                executeAudit(matchingSc.query, s.containerNo);
+              } else {
+                const q = `Audit container #${s.containerNo}`;
+                setCurrentQuery(q);
+                executeAudit(q, s.containerNo);
+              }
             }}
             onAskCopilot={(prompt) => {
               setCurrentQuery(prompt);
