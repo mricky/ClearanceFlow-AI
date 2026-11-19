@@ -4,6 +4,33 @@ import { executeMCPTool } from "../../../mcp/tools";
 import { KNOWLEDGE_DOCUMENTS } from "../../../lib/mockData";
 import { ToolExecutionTrace } from "../../../lib/types";
 
+// In-Memory Token Bucket Rate Limiter (Protects Gemini API Quota on Public Vercel Deploy)
+interface RateLimitEntry {
+  count: number;
+  resetAt: number;
+}
+const ipRateLimitMap = new Map<string, RateLimitEntry>();
+const MAX_REQUESTS_PER_WINDOW = 10;
+const WINDOW_MS = 60 * 60 * 1000; // 1 hour window
+
+function checkRateLimit(ip: string): { allowed: boolean; remaining: number } {
+  const now = Date.now();
+  const entry = ipRateLimitMap.get(ip);
+
+  // Clean up expired entry
+  if (!entry || now > entry.resetAt) {
+    ipRateLimitMap.set(ip, { count: 1, resetAt: now + WINDOW_MS });
+    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - 1 };
+  }
+
+  if (entry.count >= MAX_REQUESTS_PER_WINDOW) {
+    return { allowed: false, remaining: 0 };
+  }
+
+  entry.count += 1;
+  return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - entry.count };
+}
+
 // Helper: Cosine similarity
 function cosineSimilarity(vecA: number[], vecB: number[]): number {
   let dotProduct = 0;
@@ -28,6 +55,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         mode: "simulated",
         message: "GEMINI_API_KEY not configured, fallback to client simulation.",
+      });
+    }
+
+    // Rate Limiting per Client IP (Max 10 requests / IP / hour)
+    const clientIp =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      "127.0.0.1";
+    const { allowed, remaining } = checkRateLimit(clientIp);
+
+    if (!allowed) {
+      console.warn(`[RateLimit] IP ${clientIp} reached hourly Gemini limit (10/hr). Falling back gracefully.`);
+      return NextResponse.json({
+        mode: "simulated",
+        rateLimited: true,
+        message: "Hourly Gemini API quota reached for this IP. Gracefully using local simulation.",
       });
     }
 
