@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { ToolExecutionTrace } from "../lib/types";
 import { PdfViewerModal } from "./PdfViewerModal";
+import { DEMO_SCENARIOS, ScenarioItem } from "./ScenarioBar";
 
 interface AuditInspectorProps {
   query: string;
@@ -38,9 +39,11 @@ interface AuditInspectorProps {
     summary: string;
     mandatoryDirectives: string[];
     citations: { title: string; subCategory: string; contentSnippet: string }[];
-  };
+  } | null;
   disputeLetter: string | null;
   onOpenContainerModal?: () => void;
+  hasAudited?: boolean;
+  onSelectScenario?: (scenario: ScenarioItem) => void;
 }
 
 export function AuditInspector({
@@ -51,6 +54,8 @@ export function AuditInspector({
   verdict,
   disputeLetter,
   onOpenContainerModal,
+  hasAudited = true,
+  onSelectScenario,
 }: AuditInspectorProps) {
   const [searchInput, setSearchInput] = useState(query);
   const [copied, setCopied] = useState(false);
@@ -253,9 +258,107 @@ export function AuditInspector({
       </div>
 
       {/* Main Inspection Body */}
-      <div className="p-4 space-y-3.5 overflow-y-auto flex-1 text-xs">
-        {/* Header Title with View Mode Toggle & Container Detail Modal Button */}
-        <div className="flex flex-wrap items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800/80 gap-2">
+      <div className="p-4 space-y-3.5 overflow-y-auto flex-1 text-xs flex flex-col">
+        {!hasAudited && !isLoading ? (
+          <div className="py-6 px-3 sm:px-6 max-w-2xl mx-auto flex flex-col items-center justify-center text-center space-y-5 my-auto">
+            {/* System Status Pill */}
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-[11px] font-mono text-emerald-700 dark:text-emerald-400 font-semibold shadow-xs">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>SISTEM SIAP OPERASIONAL • CEISA 4.0 INTEGRATED</span>
+            </div>
+
+            {/* Main Headline */}
+            <div className="space-y-1.5">
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+                Verifikasi Dokumen Pabean & Sanggahan Demurrage
+              </h2>
+              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-lg mx-auto leading-relaxed">
+                ClearanceFlow AI mengintegrasikan pemeriksaan manifest pelabuhan, regulasi resmi CEISA (Jalur Merah/Kuning/Hijau), serta penerbitan otomatis surat sanggahan denda berdasar KUHD & PMK.
+              </p>
+            </div>
+
+            {/* 3 Core Capabilities Highlights */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 w-full text-left">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1 shadow-2xs">
+                <div className="flex items-center space-x-1.5 text-blue-700 dark:text-cyan-400 font-semibold text-xs">
+                  <PackageCheck className="h-4 w-4 shrink-0" />
+                  <span>Audit Kargo</span>
+                </div>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+                  Verifikasi nomor kontainer, SPJM behandle, dan SLA dwell time pelabuhan.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1 shadow-2xs">
+                <div className="flex items-center space-x-1.5 text-indigo-700 dark:text-blue-400 font-semibold text-xs">
+                  <Database className="h-4 w-4 shrink-0" />
+                  <span>Hybrid RAG</span>
+                </div>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+                  Rujukan hukum PMK 190/2022, PER-16/BC, Barantin, dan regulasi B3 IMDG.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1 shadow-2xs">
+                <div className="flex items-center space-x-1.5 text-amber-700 dark:text-amber-400 font-semibold text-xs">
+                  <FileText className="h-4 w-4 shrink-0" />
+                  <span>PDF Sanggahan</span>
+                </div>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-snug">
+                  Draf surat berkop A4 resmi pelabuhan dengan dasar hukum force majeure KUHD 517.
+                </p>
+              </div>
+            </div>
+
+            {/* Action Prompt with 1-Click Scenarios */}
+            <div className="w-full pt-3 border-t border-slate-200 dark:border-slate-800/80 space-y-2.5">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-mono">
+                <span className="font-semibold text-slate-700 dark:text-slate-300">PILIH SKENARIO UNTUK MEMULAI AUDIT:</span>
+                <span className="text-[11px]">1-Klik Otomatis</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left">
+                {DEMO_SCENARIOS.map((sc) => (
+                  <button
+                    key={sc.id}
+                    type="button"
+                    onClick={() => {
+                      if (onSelectScenario) {
+                        onSelectScenario(sc);
+                      } else {
+                        onSearch(sc.query);
+                      }
+                    }}
+                    className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-600 bg-white dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition group flex flex-col justify-between shadow-2xs cursor-pointer text-left"
+                  >
+                    <div className="flex items-center justify-between w-full mb-1">
+                      <span className="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                        {sc.badge}
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500 group-hover:text-blue-600 dark:group-hover:text-cyan-400 flex items-center space-x-0.5 transition">
+                        <span>Jalankan</span>
+                        <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                      </span>
+                    </div>
+                    <p className="font-semibold text-xs text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition">
+                      {sc.title}
+                    </p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                      {sc.subtitle}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 font-sans">
+              Atau ketik langsung nomor kontainer atau B/L kargo pada kolom pencarian di atas
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Header Title with View Mode Toggle & Container Detail Modal Button */}
+            <div className="flex flex-wrap items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800/80 gap-2">
           <div className="flex items-center space-x-2">
             <ShieldCheck className="h-4 w-4 text-slate-700 dark:text-cyan-400" />
             <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">
@@ -450,55 +553,57 @@ export function AuditInspector({
         )}
 
         {/* Step 3: Statutory Legal Verdict & Action Directives */}
-        <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-[10px] text-slate-700 dark:text-purple-400 font-bold flex items-center space-x-1 uppercase tracking-wider">
-              <FileCheck className="h-3.5 w-3.5 text-slate-600 dark:text-purple-400" />
-              <span>Step 3: Rekomendasi Hukum & Arahan Operasional Lapangan</span>
-            </span>
-            <span
-              className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border ${
-                verdict.statusType === "critical"
-                  ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/30"
-                  : verdict.statusType === "warning"
-                  ? "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/30"
-                  : "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30"
-              }`}
-            >
-              {verdict.statusTitle}
-            </span>
-          </div>
-
-          <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-normal">{verdict.summary}</p>
-
-          {/* Action Directives */}
-          <div className="space-y-1.5 pt-1">
-            <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
-              Instruksi Operasional Lapangan (Mandatory Action Items):
-            </span>
-            {verdict.mandatoryDirectives.map((dir, idx) => (
-              <div key={idx} className="flex items-start space-x-2 text-[11px] text-slate-800 dark:text-slate-300">
-                <ArrowRight className="h-3 w-3 text-slate-600 dark:text-cyan-400 shrink-0 mt-0.5" />
-                <span>{dir}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Legal Citations */}
-          {verdict.citations.length > 0 && (
-            <div className="mt-2 pt-3 border-t border-slate-200 dark:border-slate-900 space-y-1.5">
-              <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
-                Dasar Hukum Kepabeanan Terverifikasi (Kutipan Resmi):
+        {verdict && (
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[10px] text-slate-700 dark:text-purple-400 font-bold flex items-center space-x-1 uppercase tracking-wider">
+                <FileCheck className="h-3.5 w-3.5 text-slate-600 dark:text-purple-400" />
+                <span>Step 3: Rekomendasi Hukum & Arahan Operasional Lapangan</span>
               </span>
-              {verdict.citations.map((cite, idx) => (
-                <div key={idx} className="p-2.5 rounded bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-[11px] shadow-xs">
-                  <p className="font-semibold text-blue-700 dark:text-cyan-300">{cite.title}</p>
-                  <p className="text-slate-600 dark:text-slate-400 text-[10px] mt-0.5 leading-relaxed">{cite.contentSnippet}</p>
+              <span
+                className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase border ${
+                  verdict.statusType === "critical"
+                    ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/30"
+                    : verdict.statusType === "warning"
+                    ? "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/30"
+                    : "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30"
+                }`}
+              >
+                {verdict.statusTitle}
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-normal">{verdict.summary}</p>
+
+            {/* Action Directives */}
+            <div className="space-y-1.5 pt-1">
+              <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+                Instruksi Operasional Lapangan (Mandatory Action Items):
+              </span>
+              {verdict.mandatoryDirectives.map((dir, idx) => (
+                <div key={idx} className="flex items-start space-x-2 text-[11px] text-slate-800 dark:text-slate-300">
+                  <ArrowRight className="h-3 w-3 text-slate-600 dark:text-cyan-400 shrink-0 mt-0.5" />
+                  <span>{dir}</span>
                 </div>
               ))}
             </div>
-          )}
-        </div>
+
+            {/* Legal Citations */}
+            {verdict.citations.length > 0 && (
+              <div className="mt-2 pt-3 border-t border-slate-200 dark:border-slate-900 space-y-1.5">
+                <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+                  Dasar Hukum Kepabeanan Terverifikasi (Kutipan Resmi):
+                </span>
+                {verdict.citations.map((cite, idx) => (
+                  <div key={idx} className="p-2.5 rounded bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-[11px] shadow-xs">
+                    <p className="font-semibold text-blue-700 dark:text-cyan-300">{cite.title}</p>
+                    <p className="text-slate-600 dark:text-slate-400 text-[10px] mt-0.5 leading-relaxed">{cite.contentSnippet}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Step 4: Automated Action & Document Generation */}
         {disputeLetter ? (
@@ -613,6 +718,8 @@ export function AuditInspector({
               Ekspor Ringkasan Audit
             </button>
           </div>
+        )}
+          </>
         )}
       </div>
 

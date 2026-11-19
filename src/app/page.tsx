@@ -22,13 +22,14 @@ interface VerdictState {
 }
 
 export default function Home() {
+  const [hasAudited, setHasAudited] = useState<boolean>(false);
   const [selectedShipment, setSelectedShipment] = useState<ShipmentRecord>(SAMPLE_SHIPMENTS[0]);
-  const [activeScenarioId, setActiveScenarioId] = useState<string>("sc-1");
+  const [activeScenarioId, setActiveScenarioId] = useState<string>("");
   const [isArchModalOpen, setIsArchModalOpen] = useState(false);
   const [isContainerModalOpen, setIsContainerModalOpen] = useState(false);
   const [isSourcesModalOpen, setIsSourcesModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentQuery, setCurrentQuery] = useState<string>(DEMO_SCENARIOS[0].query);
+  const [currentQuery, setCurrentQuery] = useState<string>("");
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [isLiveAI, setIsLiveAI] = useState<boolean>(true);
 
@@ -57,68 +58,14 @@ export default function Home() {
     }
   };
 
-  // Initial Scenario 1 (Red Channel Crisis) state
-  const [toolTraces, setToolTraces] = useState<ToolExecutionTrace[]>([
-    {
-      toolName: "lookup_shipment",
-      arguments: { identifier: "MSKU-992104" },
-      result: {
-        found: true,
-        waybillNo: "WBL-2026-033",
-        containerNo: "MSKU-992104",
-        status: "CUSTOMS_HOLD_RED_CHANNEL",
-        commodity: "Frozen Black Tiger Prawns (Export)",
-        pol: "IDJKT (Tanjung Priok, Indonesia)",
-        pod: "JPTYO (Tokyo Port, Japan)",
-        freeTimeDaysLeft: 2,
-        demurrageDaysOverdue: 0,
-      },
-      latencyMs: 1.8,
-    },
-    {
-      toolName: "search_compliance_knowledge",
-      arguments: { query: "SPJM Red Channel inspection frozen prawns CEISA", categoryFilter: "all" },
-      result: {
-        method: "Gemini 3072d Dense Vector + PostgreSQL Lexical (RRF)",
-        kConstant: 60,
-        retrievedCount: 3,
-        topRankedArticle: "SOP Jalur Pelayanan Impor Bea Cukai: Jalur Hijau, Jalur Kuning, dan Jalur Merah (SPJM)",
-        topRrfScore: 0.03279,
-      },
-      latencyMs: 2.4,
-    },
-  ]);
-
-  const [verdict, setVerdict] = useState<VerdictState>({
-    statusType: "critical" as const,
-    statusTitle: "CRITICAL: RED CHANNEL PENDING INSPECTION",
-    summary:
-      "Container MSKU-992104 has received an official Surat Pemberitahuan Jalur Merah (SPJM) from CEISA 4.0. Because the cargo consists of perishable frozen crustaceans (-20.4°C), mandatory attendance at TPP Behandle must be fulfilled within the legal 3x24-hour window to avoid port congestion penalties.",
-    mandatoryDirectives: [
-      "Mobilize operational surveyor to TPP Behandle Tanjung Priok before the 48-hour deadline.",
-      "Submit BKIPM Official Health Certificate and original Bill of Lading (WBL-2026-033).",
-      "Verify continuous auxiliary power plug connection for reefer container at plug-station #42.",
-    ],
-    citations: [
-      {
-        title: "SOP Jalur Pelayanan Impor Bea Cukai: Jalur Hijau, Jalur Kuning, dan Jalur Merah (SPJM)",
-        subCategory: "import_clearance",
-        contentSnippet:
-          "Proses pemeriksaan fisik wajib dihadiri importir/kuasanya dalam waktu 3x24 jam sejak SPJM terbit. Apabila tidak dihadiri, kontainer dapat dikenakan nota pembetulan atau penegakan hukum.",
-      },
-      {
-        title: "SOP Ekspor Produk Perikanan & Makanan Beku via CEISA Bea Cukai",
-        subCategory: "export_clearance",
-        contentSnippet:
-          "Pengiriman ekspor komoditas frozen seafood wajib melampirkan Health Certificate dari BKIPM serta verifikasi suhu reefer container minimal minus 20 derajat Celcius sebelum gate-in.",
-      },
-    ],
-  });
-
+  // Initial state: Clean welcome view before user runs audit
+  const [toolTraces, setToolTraces] = useState<ToolExecutionTrace[]>([]);
+  const [verdict, setVerdict] = useState<VerdictState | null>(null);
   const [disputeLetter, setDisputeLetter] = useState<string | null>(null);
 
   // Handle Scenario Switching
   const handleSelectScenario = (scenario: ScenarioItem) => {
+    setHasAudited(true);
     setActiveScenarioId(scenario.id);
     setCurrentQuery(scenario.query);
     const matchingShipment = SAMPLE_SHIPMENTS.find((s) => s.containerNo === scenario.containerNo);
@@ -130,6 +77,7 @@ export default function Home() {
 
   // Execute Agentic Audit Workflow (Live API with Graceful Client Fallback)
   const executeAudit = async (query: string, explicitContainer?: string) => {
+    setHasAudited(true);
     // Pre-sync selected shipment immediately for snappy UI
     const targetIdentifier =
       explicitContainer ||
@@ -313,6 +261,8 @@ export default function Home() {
           verdict={verdict}
           disputeLetter={disputeLetter}
           onOpenContainerModal={() => setIsContainerModalOpen(true)}
+          hasAudited={hasAudited}
+          onSelectScenario={handleSelectScenario}
         />
       </main>
 
