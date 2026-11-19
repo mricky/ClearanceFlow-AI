@@ -81,7 +81,8 @@ export async function POST(req: NextRequest) {
     const targetIdentifier =
       explicitContainer ||
       query.match(/(?:MSKU|OCLU|CMAU|EGLV)[-\s]?\d{6,7}/i)?.[0] ||
-      (query.includes("033") ? "MSKU-992104" : query.includes("089") ? "OCLU-883192" : query.includes("112") ? "CMAU-410291" : "EGLV-771820");
+      (query.includes("033") ? "MSKU-992104" : query.includes("089") ? "OCLU-883192" : query.includes("112") ? "CMAU-410291" : query.includes("145") ? "EGLV-771820" : null) ||
+      (query.trim().length <= 25 ? query.trim() : query.split(" ")[0]);
 
     const t1Start = performance.now();
     const shipmentResult = await executeMCPTool("lookup_shipment", { identifier: targetIdentifier });
@@ -188,6 +189,9 @@ ${JSON.stringify(topArticles, null, 2)}
 
 USER AUDIT QUERY: "${query}"
 
+CRITICAL RULE FOR UNREGISTERED CARGO:
+If SHIPMENT DATA has "found": false, you MUST set "statusType": "warning", "statusTitle": "DATA TIDAK DITEMUKAN (UNREGISTERED CARGO)", and state clearly in Indonesian that container/B/L "${targetIdentifier}" is not registered in the CEISA port manifest. Mandatory directives must advise the user to verify physical B/L documents or check carrier prefix format.
+
 Return ONLY valid JSON (no markdown backticks, no extra text) with the following exact keys:
 {
   "statusType": "critical" | "warning" | "success",
@@ -215,7 +219,16 @@ Return ONLY valid JSON (no markdown backticks, no extra text) with the following
       let summary = `Container ${shipmentResult.containerNo || targetIdentifier} audited against CEISA 4.0 regulations.`;
       let directives = ["Present verified documentation to Customs Control."];
 
-      if (shipmentResult?.status === "CUSTOMS_HOLD_RED_CHANNEL") {
+      if (!shipmentResult?.found) {
+        statusType = "warning";
+        statusTitle = "DATA TIDAK DITEMUKAN / UNREGISTERED CARGO";
+        summary = `Nomor kontainer / B/L "${targetIdentifier}" tidak terdaftar dalam database manifest pabean aktif di Pelabuhan Tanjung Priok, Tanjung Perak, maupun Belawan. Tidak ada dokumen SPJM atau SPPB aktif untuk nomor ini.`;
+        directives = [
+          "Periksa kembali nomor peti kemas / B/L fisik yang tertera pada dokumen pengapalan.",
+          "Pastikan format nomor kontainer sesuai standar internasional ISO 6346 (4 huruf kode pemilik + 7 digit angka, contoh: MSKU-992104).",
+          "Gunakan salah satu dari 4 skenario simulasi cepat di atas untuk melihat alur audit kepabeanan yang terverifikasi.",
+        ];
+      } else if (shipmentResult?.status === "CUSTOMS_HOLD_RED_CHANNEL") {
         statusType = "critical";
         statusTitle = "CRITICAL: RED CHANNEL PENDING INSPECTION";
         summary = `Container ${shipmentResult.containerNo} is flagged for mandatory physical inspection under CEISA 4.0 SPJM notice. Attendance is required within 72 hours.`;

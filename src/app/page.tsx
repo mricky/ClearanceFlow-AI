@@ -132,7 +132,8 @@ export default function Home() {
       const targetIdentifier =
         explicitContainer ||
         query.match(/(?:MSKU|OCLU|CMAU|EGLV)[-\s]?\d{6,7}/i)?.[0] ||
-        (query.includes("033") ? "MSKU-992104" : query.includes("089") ? "OCLU-883192" : query.includes("112") ? "CMAU-410291" : "EGLV-771820");
+        (query.includes("033") ? "MSKU-992104" : query.includes("089") ? "OCLU-883192" : query.includes("112") ? "CMAU-410291" : query.includes("145") ? "EGLV-771820" : null) ||
+        (query.trim().length <= 25 ? query.trim() : query.split(" ")[0]);
 
       const { shipment, trace: dbTrace } = lookupShipment(targetIdentifier);
       traces.push(dbTrace);
@@ -169,7 +170,16 @@ export default function Home() {
       let summary = "";
       let directives: string[] = [];
 
-      if (shipment?.status === "CUSTOMS_HOLD_RED_CHANNEL") {
+      if (!shipment) {
+        statusType = "warning";
+        statusTitle = "DATA TIDAK DITEMUKAN / UNREGISTERED CARGO";
+        summary = `Nomor kontainer atau B/L "${targetIdentifier}" tidak terdaftar dalam database manifest pabean aktif di Pelabuhan Tanjung Priok, Tanjung Perak, maupun Belawan. Tidak ada dokumen SPJM atau SPPB aktif untuk nomor ini.`;
+        directives = [
+          "Periksa kembali nomor peti kemas / B/L fisik yang tertera pada dokumen pengapalan.",
+          "Pastikan format nomor kontainer sesuai standar internasional ISO 6346 (4 huruf kode pemilik + 7 digit angka, contoh: MSKU-992104).",
+          "Gunakan salah satu dari 4 skenario simulasi cepat di atas untuk melihat alur audit kepabeanan yang terverifikasi.",
+        ];
+      } else if (shipment.status === "CUSTOMS_HOLD_RED_CHANNEL") {
         statusType = "critical";
         statusTitle = "CRITICAL: RED CHANNEL PENDING INSPECTION";
         summary = `Container ${shipment.containerNo} is flagged for mandatory physical inspection under CEISA 4.0 SPJM notice. Free time remaining is 2 days. Attendance is legally required within 72 hours.`;
@@ -178,7 +188,7 @@ export default function Home() {
           "Prepare original BKIPM health certificate and authenticated B/L copy.",
           "Maintain reefer temperature log (-20.4°C verified by IoT sensor).",
         ];
-      } else if (shipment?.status === "DEMURRAGE_OVERDUE") {
+      } else if (shipment.status === "DEMURRAGE_OVERDUE") {
         statusType = "warning";
         statusTitle = "PENALTY ACCRUAL: FORCE MAJEURE DISPUTE ELIGIBLE";
         summary = `Container ${shipment.containerNo} has accrued 4 days of demurrage ($600 total exposure at $150/day). Because delay was caused by official port congestion, an automated waiver dispute letter has been generated below.`;
@@ -187,7 +197,7 @@ export default function Home() {
           "Attach the official Port Authority Terminal Congestion Bulletin as Exhibit A.",
           "Request expedited gate-out authorization pending dispute review.",
         ];
-      } else if (shipment?.status === "RELEASED_GREEN_CHANNEL") {
+      } else if (shipment.status === "RELEASED_GREEN_CHANNEL") {
         statusType = "success";
         statusTitle = "CLEARED: GREEN CHANNEL RELEASE (SPPB)";
         summary = `Container ${shipment.containerNo} has passed phytosanitary quarantine and CEISA automated green channel scrutiny. Customs release order (SPPB) is active.`;
@@ -199,7 +209,7 @@ export default function Home() {
       } else {
         statusType = "warning";
         statusTitle = "HAZARDOUS CARGO: IMDG PLACARD & MSDS AUDIT";
-        summary = `Container ${shipment?.containerNo || targetIdentifier} contains IMO Class 8 corrosive chemicals. Requires full 16-section UN GHS MSDS and four-sided placard inspection.`;
+        summary = `Container ${shipment.containerNo} contains IMO Class 8 corrosive chemicals. Requires full 16-section UN GHS MSDS and four-sided placard inspection.`;
         directives = [
           "Verify high-visibility waterproof IMO Class 8 placards (250mm x 250mm).",
           "Ensure multimodal Dangerous Goods Declaration is lodged with terminal safety control.",

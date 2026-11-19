@@ -205,7 +205,8 @@ export function AuditInspector({
   const ragTrace = toolTraces.find((t) => t.toolName === "search_compliance_knowledge");
 
   // Helper for human-readable logistics status
-  const getLogisticsStatusLabel = (status?: string) => {
+  const getLogisticsStatusLabel = (status?: string, found?: boolean) => {
+    if (found === false) return "Data Kargo Tidak Terdaftar di Manifest CEISA 4.0";
     if (status === "CUSTOMS_HOLD_RED_CHANNEL") return "Jalur Merah (SPJM) • Wajib Hadir Fisik TPP Behandle";
     if (status === "DEMURRAGE_OVERDUE") return "Penalti Demurrage Berjalan • Sisa Free-Time Habis";
     if (status === "RELEASED_GREEN_CHANNEL") return "Jalur Hijau (SPPB) • Siap Tarik Truk Drayage";
@@ -421,33 +422,46 @@ export function AuditInspector({
                     <PackageCheck className="h-3.5 w-3.5" />
                     <span>LANGKAH 1: AUDIT FISIK & MANIFEST KARGO</span>
                   </span>
-                  <span className="text-[10px] font-sans font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
-                    Manifest Aktif
-                  </span>
+                  {dbTrace?.result?.found ? (
+                    <span className="text-[10px] font-sans font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                      Manifest Aktif
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-sans font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800">
+                      Tidak Terdaftar
+                    </span>
+                  )}
                 </div>
                 <p className="font-semibold text-slate-900 dark:text-white mt-1 text-xs">
                   {dbTrace?.result?.found
                     ? `Peti Kemas #${dbTrace.result.containerNo} (B/L: ${dbTrace.result.waybillNo || "WBL-2026"})`
-                    : "Pengecekan nomor kontainer di manifest..."}
+                    : `Nomor Kargo "${dbTrace?.arguments?.identifier || "Input"}" Tidak Ditemukan`}
                 </p>
                 <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
-                  <strong>Status Pabean:</strong> {getLogisticsStatusLabel(dbTrace?.result?.status)}
+                  <strong>Status Pabean:</strong> {getLogisticsStatusLabel(dbTrace?.result?.status, dbTrace?.result?.found)}
                 </p>
                 <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
-                  <strong>SLA Dwell Time:</strong> Sisa Free-Time Pelabuhan:{" "}
-                  <span className="font-bold text-slate-900 dark:text-white">
-                    {dbTrace?.result?.freeTimeDaysLeft ?? 2} Hari
-                  </span>{" "}
-                  {dbTrace?.result?.demurrageDaysOverdue > 0 && (
-                    <span className="text-red-600 dark:text-red-400 font-bold">
-                      ({dbTrace?.result?.demurrageDaysOverdue} Hari Denda Berjalan)
-                    </span>
+                  <strong>SLA Dwell Time:</strong>{" "}
+                  {dbTrace?.result?.found ? (
+                    <>
+                      Sisa Free-Time Pelabuhan:{" "}
+                      <span className="font-bold text-slate-900 dark:text-white">
+                        {dbTrace?.result?.freeTimeDaysLeft ?? 2} Hari
+                      </span>{" "}
+                      {dbTrace?.result?.demurrageDaysOverdue > 0 && (
+                        <span className="text-red-600 dark:text-red-400 font-bold">
+                          ({dbTrace?.result?.demurrageDaysOverdue} Hari Denda Berjalan)
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-slate-500 dark:text-slate-400">Tidak ada dwell time (kargo belum terdaftar)</span>
                   )}
                 </p>
               </div>
               <div className="mt-2.5 pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[10px] font-mono text-slate-500">
                 <span className="truncate">Pelabuhan: Tanjung Priok (IDJKT)</span>
-                {onOpenContainerModal && (
+                {dbTrace?.result?.found && onOpenContainerModal && (
                   <button
                     type="button"
                     onClick={onOpenContainerModal}
@@ -701,6 +715,22 @@ export function AuditInspector({
             <pre className="p-3 rounded-lg bg-white dark:bg-black/70 border border-amber-200 dark:border-slate-800 text-[10px] font-mono text-slate-800 dark:text-slate-300 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-56 shadow-xs">
               {disputeLetter}
             </pre>
+          </div>
+        ) : dbTrace?.result?.found === false ? (
+          <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
+              <div>
+                <p className="font-semibold text-slate-900 dark:text-white text-xs">Penerbitan Dokumen Ditangguhkan</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">Tidak dapat menerbitkan draf sanggahan atau surat pengeluaran karena nomor kargo belum terdaftar di manifest pelabuhan.</p>
+              </div>
+            </div>
+            <button
+              onClick={() => onSearch(DEMO_SCENARIOS[0].query)}
+              className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-200 text-xs font-mono border border-slate-200 dark:border-slate-800 transition shadow-xs font-medium cursor-pointer"
+            >
+              Uji Skenario 1 Demo
+            </button>
           </div>
         ) : (
           <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
